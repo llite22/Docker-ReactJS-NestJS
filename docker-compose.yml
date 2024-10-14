@@ -1,20 +1,23 @@
 services:
   backend:
     build:
-      context: ./backend # Изменено с backend/docker на ./backend
-      dockerfile: docker/Dockerfile # Изменено на docker/Dockerfile
+      context: ./backend
+      dockerfile: docker/Dockerfile
     container_name: backend # Задает имя контейнера
     ports:
       - "3000:3000" # Проброс порта: хост:контейнер
     volumes:
       - ./backend:/app # Монтирует локальную директорию в контейнер для разработки
+      - /app/node_modules
+    command: npm run start:dev
     depends_on:
       - postgres # Зависимость от сервиса с PostgreSQL
+    restart: always # Обеспечивает автоматический перезапуск контейнера в случае сбоя или перезагрузки системы
 
   frontend:
     build:
-      context: ./frontend # Изменено с frontend/docker на ./frontend
-      dockerfile: docker/Dockerfile # Изменено на docker/Dockerfile
+      context: ./frontend
+      dockerfile: docker/Dockerfile
     container_name: frontend # Задает имя контейнера
     ports:
       - "5173:5173" # Проброс порта: хост:контейнер
@@ -36,6 +39,7 @@ services:
       POSTGRES_DB: ${DATABASE_NAME:-nest_react_db} # Задает имя базы данных
     volumes:
       - postgres_data:/var/lib/postgresql/data # Сохраняет данные PostgreSQL в именованном томе
+    restart: always
 
 volumes:
   postgres_data: # Объявляет именованный том для хранения данных PostgreSQL
