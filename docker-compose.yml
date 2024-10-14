@@ -1,41 +1,45 @@
+version: "2.29.2-desktop.2"
+
 services:
   backend:
     build:
-      context: ./backend # Изменено с backend/docker на ./backend
-      dockerfile: docker/Dockerfile # Изменено на docker/Dockerfile
+      context: ./backend
+      dockerfile: docker/Dockerfile
     container_name: backend # Задает имя контейнера
     ports:
       - "3000:3000" # Проброс порта: хост:контейнер
     volumes:
       - ./backend:/app # Монтирует локальную директорию в контейнер для разработки
+      - /app/node_modules
+    command: npm run start:dev
     depends_on:
       - postgres # Зависимость от сервиса с PostgreSQL
+    restart: always # Обеспечивает автоматический перезапуск контейнера в случае сбоя или перезагрузки системы
 
   frontend:
     build:
-      context: ./frontend # Изменено с frontend/docker на ./frontend
-      dockerfile: docker/Dockerfile # Изменено на docker/Dockerfile
+      context: ./frontend
+      dockerfile: docker/Dockerfile
     container_name: frontend # Задает имя контейнера
     ports:
       - "5173:5173" # Проброс порта: хост:контейнер
     volumes:
       - ./frontend:/app # Монтирует локальную директорию в контейнер для разработки
       - /app/node_modules # Исключает папку node_modules из монтирования, чтобы использовать модули, установленные в контейнере
-    environment:
-      - NODE_ENV=development # Устанавливает переменную окружения для режима разработки
-    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0"] # Запускает команду для запуска приложения в режиме разработки, доступного извне контейнера
+    command: npm run dev
     
   postgres:
     image: postgres:16 # Использует официальный образ PostgreSQL версии 16
     container_name: postgres # Задает имя контейнера
     ports:
-      - "5440:5432" # Проброс порта: хост:5433, контейнер:5432
+      - "5440:5432" # Проброс порта: хост:5440, контейнер:5432
     environment:
       POSTGRES_USER: ${DATABASE_USER:-postgres} # Задает имя пользователя для PostgreSQL
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-895820} # Задает пароль для PostgreSQL
       POSTGRES_DB: ${DATABASE_NAME:-nest_react_db} # Задает имя базы данных
     volumes:
       - postgres_data:/var/lib/postgresql/data # Сохраняет данные PostgreSQL в именованном томе
+    restart: always
 
 volumes:
   postgres_data: # Объявляет именованный том для хранения данных PostgreSQL
